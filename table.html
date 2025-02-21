@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Initial states to prevent flash */
+        .main-content {
+            opacity: 0;
+        }
+
+        .header-content {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        /* Modern approach to handle scrollbar layout shifts */
+        html {
+            scrollbar-gutter: stable;
+        }
+
+        body {
+            border-right: 1px solid #E5E7EB;
+        }
+
+        /* Optional: Style scrollbar for better visual appearance */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #ddd #f1f1f1;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInHeader {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 300ms ease-out forwards;
+        }
+
+        .animate-fade-in-header {
+            animation: fadeInHeader 300ms ease-out forwards;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in, .animate-fade-in-header {
+                animation: none;
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* Smooth transitions */
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+
+        /* Table hover effects */
+        tr.hover\:bg-gray-50:hover {
+            background-color: rgb(249, 250, 251);
+            transition: background-color 150ms ease-in-out;
+        }
+
+        /* Tag hover effects */
+        span[class*="bg-"]:not(.bg-orange-100) {
+            transition: opacity 150ms ease-in-out;
+        }
+
+        span[class*="bg-"]:not(.bg-orange-100):hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body style="background-color: #F2F4F7">
+    <!-- Top Bar -->
+    <div class="bg-white shadow">
+        <div class="max-w-[1280px] mx-auto h-[120px] flex items-center px-4">
+            <div class="header-content animate-fade-in-header">
+                <a href="index.html" class="flex items-center gap-2 text-2xl font-normal text-gray-600 hover:text-gray-800 transition-colors duration-150">
+                    <i class="fa-solid fa-arrow-left text-xl"></i>
+                    <span>Back</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="pt-6 main-content animate-fade-in">
+        <div class="max-w-[1280px] mx-auto pb-[100px]">
+            <!-- Header Section -->
+            <div class="p-4 flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-normal">Storage</h1>
+                </div>
+                <div>
+                    <button class="flex items-center justify-center gap-2 rounded text-xs leading-5 font-medium tracking-[1px] uppercase text-white bg-[#1ec71e] hover:bg-[#1ab01a] active:bg-[#158515] px-4 py-2.5 h-10 cursor-pointer border-none" 
+                        onclick="openCreateBucketModal()">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
+                            <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"></path>
+                        </svg>
+                        CREATE BUCKET
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Filter Section -->
+            <div class="p-4">
+                <div class="flex flex-col gap-4">
+                    <!-- Search Bar with Integrated Filters -->
+                    <div class="relative">
+                        <input type="text" 
+                               id="searchInput"
+                               class="w-full h-14 pl-[48px] pr-[500px] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+                               placeholder="Search all tables (592) and buckets (238)"
+                               oninput="filterTables()">
+                        <div class="absolute left-[20px] top-1/2 -translate-y-1/2">
+                            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                        </div>
+                        <!-- Filter Controls -->
+                        <div class="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                            <!-- Show Dropdown -->
+                            <div class="relative inline-block text-left">
+                                <button type="button" 
+                                        id="filterButton"
+                                        onclick="document.getElementById('filterDropdown').classList.toggle('hidden')"
+                                        class="inline-flex items-center gap-2 px-2 h-8 bg-white rounded-md text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <span class="text-gray-500 font-normal">Show:</span>
+                                    <span id="filterButtonText" class="text-gray-500 font-normal underline">All</span>
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div id="filterDropdown" 
+                                     class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-10">
+                                    <div class="py-1">
+                                        <a href="#" onclick="updateDropdownSelection('filter', 'All', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            All
+                                        </a>
+                                        <div class="h-px bg-gray-100 my-1"></div>
+                                        <a href="#" onclick="updateDropdownSelection('filter', 'Linked', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="checkbox" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 rounded border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            Linked
+                                        </a>
+                                        <a href="#" onclick="updateDropdownSelection('filter', 'Shared', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="checkbox" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 rounded border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            Shared
+                                        </a>
+                                    </div>
+                                    <div class="py-1">
+                                        <a href="#" onclick="updateDropdownSelection('filter', 'Tables', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="checkbox" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 rounded border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            Tables
+                                        </a>
+                                        <a href="#" onclick="updateDropdownSelection('filter', 'Buckets', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="checkbox" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 rounded border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            Buckets
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Divider -->
+                            <div class="h-5 w-px bg-gray-300"></div>
+                            <!-- Tag Filter Dropdown -->
+                            <div class="relative inline-block text-left">
+                                <button type="button" 
+                                        id="tagFilterButton"
+                                        onclick="document.getElementById('tagFilterDropdown').classList.toggle('hidden')"
+                                        class="inline-flex items-center gap-2 px-2 h-8 bg-white rounded-md text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <span class="text-gray-500 font-normal">Filter by tag:</span>
+                                    <span id="tagFilterButtonText" class="text-gray-500 font-normal underline">None</span>
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div id="tagFilterDropdown" 
+                                     class="hidden origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-10">
+                                    <div class="p-2">
+                                        <input type="text" 
+                                               id="tagSearchInput"
+                                               class="w-full px-3 py-1.5 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                               placeholder="Search tags"
+                                               oninput="filterTagsList()">
+                                    </div>
+                                    <div class="py-1" id="tagsList">
+                                        <!-- Tags will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Divider -->
+                            <div class="h-5 w-px bg-gray-300"></div>
+                            <!-- Tags Visibility Toggle -->
+                            <div class="relative inline-block text-left">
+                                <button type="button" 
+                                        id="tagsButton"
+                                        onclick="document.getElementById('tagsVisibilityDropdown').classList.toggle('hidden')"
+                                        class="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                                        <path fill-rule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div id="tagsVisibilityDropdown" 
+                                     class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-10">
+                                    <div class="py-1">
+                                        <div class="px-3 py-1.5 text-sm text-gray-700">
+                                            Tags
+                                        </div>
+                                        <div class="h-px bg-gray-100 my-1"></div>
+                                        <a href="#" onclick="updateTagsVisibility('hide-tags', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="radio" name="tagsVisibility" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 border-gray-300 text-blue-500 focus:ring-blue-500" checked>
+                                            Hide tags by default
+                                        </a>
+                                        <a href="#" onclick="updateTagsVisibility('show-tags', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="radio" name="tagsVisibility" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            Show tags by default
+                                        </a>
+                                    </div>
+                                    <div class="py-1">
+                                        <div class="px-3 py-1.5 text-sm text-gray-700">
+                                            Branch
+                                        </div>
+                                        <div class="h-px bg-gray-100 my-1"></div>
+                                        <a href="#" onclick="updateTagsVisibility('hide-branches', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="radio" name="branchVisibility" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 border-gray-300 text-blue-500 focus:ring-blue-500" checked>
+                                            Hide branch folders
+                                        </a>
+                                        <a href="#" onclick="updateTagsVisibility('show-branches', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="radio" name="branchVisibility" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            Show branch folders
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="px-4">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="px-6 py-4 w-full">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            <span class="font-medium text-black text-[14px]">Name</span>
+                                        </div>
+                                        <span class="font-medium text-black whitespace-nowrap text-[14px]">Last Change</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Table rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="table.js"></script>
+    <script>
+        // Function to update tags visibility preference
+        function updateTagsVisibility(preference, element, event) {
+            // Prevent event from bubbling up to document and prevent default link behavior
+            event.preventDefault();
+            event.stopPropagation();
+
+            // Set radio button when clicking anywhere in the row
+            const radio = element.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+
+            // Update button state and tag visibility
+            const button = document.getElementById('tagsButton');
+            if (preference === 'show-tags') {
+                button.classList.remove('text-gray-400');
+                button.classList.add('text-blue-500');
+                showTags = true;
+            } else {
+                button.classList.remove('text-blue-500');
+                button.classList.add('text-gray-400');
+                showTags = false;
+            }
+
+            // Re-render the table to update tag visibility
+            if (document.getElementById('searchInput').value) {
+                filterTables();
+            } else {
+                renderTable();
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const tagsVisibilityDropdown = document.getElementById('tagsVisibilityDropdown');
+            const filterDropdown = document.getElementById('filterDropdown');
+            const filterByDropdown = document.getElementById('filterByDropdown');
+            const tagsButton = document.getElementById('tagsButton');
+            const filterButton = document.getElementById('filterButton');
+            const filterByButton = document.getElementById('filterByButton');
+
+            // Check if click is inside any dropdown
+            const isInsideDropdown = filterDropdown.contains(event.target) || 
+                                   filterByDropdown.contains(event.target) ||
+                                   tagsVisibilityDropdown.contains(event.target);
+
+            // Only close if click is outside buttons and dropdowns
+            if (!isInsideDropdown) {
+                if (!tagsButton.contains(event.target)) {
+                    tagsVisibilityDropdown.classList.add('hidden');
+                }
+                if (!filterButton.contains(event.target)) {
+                    filterDropdown.classList.add('hidden');
+                }
+                if (!filterByButton.contains(event.target)) {
+                    filterByDropdown.classList.add('hidden');
+                }
+            }
+        });
+
+        // Function to update dropdown selection
+        function updateDropdownSelection(type, value, element, event) {
+            // Prevent event from bubbling up to document and prevent default link behavior
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Update button text
+            const buttonText = document.getElementById(type + 'ButtonText');
+            
+            // Only handle "All" selection
+            if (value === 'All') {
+                buttonText.textContent = value;
+                buttonText.className = 'text-gray-500 font-normal underline';
+                document.getElementById(type + 'Dropdown').classList.add('hidden');
+                // Uncheck all checkboxes when selecting "All"
+                const allCheckboxes = document.getElementById(type + 'Dropdown').querySelectorAll('input[type="checkbox"]');
+                allCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                return;
+            }
+            
+            // Toggle checkbox when clicking anywhere in the row
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+            }
+            
+            // Update button text based on selected items from all sections
+            const checkedBoxes = document.getElementById(type + 'Dropdown').querySelectorAll('input[type="checkbox"]:checked');
+            if (checkedBoxes.length === 0) {
+                buttonText.textContent = 'All';
+                buttonText.className = 'text-gray-500 font-normal underline';
+            } else {
+                const selectedValues = Array.from(checkedBoxes).map(cb => 
+                    cb.parentElement.textContent.trim()
+                );
+                buttonText.textContent = selectedValues.join(', ');
+                buttonText.className = 'text-blue-600 font-normal underline';
+            }
+        }
+
+        // Function to update filter by selection (using radio buttons)
+        function updateFilterBySelection(value, element, event) {
+            // Prevent event from bubbling up to document and prevent default link behavior
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Update button text
+            const buttonText = document.getElementById('filterByButtonText');
+            buttonText.textContent = value;
+            
+            // Only handle "All" selection
+            if (value === 'All') {
+                document.getElementById('filterByDropdown').classList.add('hidden');
+                // Uncheck all radio buttons
+                const allRadios = document.getElementById('filterByDropdown').querySelectorAll('input[type="radio"]');
+                allRadios.forEach(radio => {
+                    radio.checked = false;
+                });
+                return;
+            }
+            
+            // Set radio button when clicking anywhere in the row
+            const radio = element.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+        }
+    </script>
+</body>
+</html> 
