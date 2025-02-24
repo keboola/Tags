@@ -33,6 +33,10 @@ Component for managing tags in object detail views across different Keboola obje
 - Transformations
 - Data Apps
 
+### Requirements
+- Tags are streamed into telemetry
+- Access to management center (to create, edit or delete tags) is granted to users with admin or share roles
+
 ### Common Requirements
 - Reuse existing Keboola components
 - Follow platform patterns
