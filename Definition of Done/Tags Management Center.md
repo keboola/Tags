@@ -7,101 +7,68 @@ The Tags Management Center is a centralized interface for managing key-value tag
 ### Key Features
 1. Key-Value Tag Management
    - Create, edit, and delete key-value pairs
-   - Predefined keys for common use cases (Environment, Owner, Compliance, etc.)
    - Custom key-value pair creation
-   - Industry-standard tagging structure (AWS, Azure, GCP compatible)
 
 2. Object Support
-   - Tables and Buckets
+   - Tables
+   - Buckets
    - Flows
    - Configurations
    - Transformations
    - Data Apps
 
 3. Bulk Operations
-   - Multi-select resource tagging
-   - Bulk tag modification
-   - Batch operations interface
-   - Tag template application
+   - Multi-select tags
+   - Bulk tag delete operation
 
-4. Search and Filtering
+4. Search Feature
    - Basic tag search (key:value)
-   - Advanced search combinations (AND/OR operations)
    - Tag-based resource filtering
-   - Saved searches and filters
 
 5. Access Control
-   - Organization-level tag management
-   - Role-based access control
-   - Tag-level permissions
-   - Audit logging
+   - Accessible to uders with admin or share roles
 
 ## Frontend Definition of Done
 
 ### User Interface
 - [ ] Tag Management Dashboard
-  - Key-value pair creation interface
-  - Tag template management
-  - Bulk operations interface
-  - Usage statistics visualization
-  - Organization-level overview
+  - Search bar (filtering by tag name, highlighting the matching string within the tag name)
+  - Five columns:
+   - Multiselect (possibility to multiselect objects)
+   - Tag (tag name and color)
+   - Objects Count (number of objects with this tag - no interaction within MVP)
+   - Creator (user who created the tag)
+   - Last Updated (last time tag was updated)
+  - Possibility to sort by each column (alphabetically, by number of objects, by last updated)
+  - Bulk operations interface (delete)
+  - On hover of the row, three dots more menu appears at the end of the row with following options:
+    - Edit tag
+    - Delete tag
+  - Button to create a new tag
 
-- [ ] Tag Properties Panel
-  - Key input field with suggestions
-  - Value input with validation
-  - Description field
-  - Visibility settings
-  - Permission configuration
-  - Usage statistics
+- [ ] Tag Creation Modal
+  - Input fields:
+    - Tag name (defaultly with # at the beginning, validation if the tag name is already taken)
+    - Tag color (defaultly with gray color)
+  - Once created, the tag is automatically added to the tag management dashboard
+  - Once created, the tag is possible to assign to objects
 
-- [ ] Search and Filter Interface
-  - Key:value search syntax
-  - Advanced query builder (AND/OR operations)
-  - Save search functionality
-  - Resource type filters
-  - Quick filters for common tags
-
-- [ ] Bulk Operations Panel
-  - Multi-select interface
-  - Batch edit window
-  - Operation preview
-  - Progress tracking
-  - Error handling
+- [ ] Tag Edit Modal
+  - Input fields:
+    - Tag name (defaultly with # at the beginning, validation if the tag name is already taken)
+    - Tag color
+  - Once edited, the tag is automatically edited in the tag management dashboard and all appropriate places
 
 ### User Experience
-- [ ] Performance
+  - Reuse existing components from the platform if possible
   - Initial load < 1.5s
   - Tag operations < 200ms
-  - Smooth animations (60fps)
-  - Responsive on all devices
-
-- [ ] Accessibility
-  - WCAG 2.1 AA compliant
-  - Keyboard navigation
-  - Screen reader support
-  - High contrast mode
-
-- [ ] Error Handling
-  - User-friendly error messages
-  - Validation feedback
-  - Recovery options
-  - Operation status indicators
-
-### Integration
-- [ ] Multi-Resource Integration
-  - Tables and Buckets view
-  - Flows integration
-  - Configurations panel
-  - Transformations interface
-  - Data Apps support
-
-- [ ] State Management
-  - Real-time updates
-  - Offline support
-  - Undo/redo functionality
-  - Session persistence
+  - Ensure responsivity on multiple devices/resolutions
+  - Ensure functionality on all browsers (IE11+)
 
 ## Backend Definition of Done
+
+### Proposal from AI - to be updated once RFC is approved
 
 ### API Endpoints
 - [ ] Tag Management

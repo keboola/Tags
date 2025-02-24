@@ -1,38 +1,40 @@
 # Tags Implementation - Definition of Done
 
-This directory contains the comprehensive Definition of Done and Acceptance Criteria for implementing tags functionality in the Keboola Connection platform.
-
-## Structure
-- `backend.md` - Backend implementation requirements
-- `frontend.md` - Frontend implementation requirements
-- `testing.md` - Testing requirements and scenarios
-- `documentation.md` - Documentation requirements
-- `security.md` - Security requirements and considerations
-
 ## Overview
+This directory contains the Definition of Done documents for implementing tags functionality in the Keboola Connection platform. Each document focuses on specific implementation requirements for frontend developers familiar with the platform.
 
-The tags implementation will allow users to:
-1. Create, read, update, and delete tags
-2. Associate tags with Storage objects (buckets, tables)
-3. Filter and search objects by tags
-4. Manage tag visibility and permissions
-5. Bulk operations with tags
+## Components
+
+### Tags Management Center
+Central interface for managing tags across the platform. Includes tag creation, editing, and bulk operations.
+
+### Table
+Enhanced table listing with integrated tag support, search, and filtering capabilities.
+
+### Selectors
+Component for selecting Keboola objects with integrated tag support and search functionality.
+
+### Object Detail
+Component for managing tags in object detail views across different Keboola objects.
 
 ## Implementation Scope
 
-### Storage Layer
-- Storage API extensions for tag management
-- Database schema updates
-- Tag metadata storage
-- Performance optimizations
+### Core Features
+- Tag management (create, edit, delete)
+- Object tagging
+- Search and filtering
+- Bulk operations
 
-### Frontend Layer
-- UI components for tag management
-- Integration with existing Storage UI
-- Search and filter implementations
-- Bulk operations interface
+### Integration Points
+- Storage
+- Data Catalog
+- Flows
+- Components
+- Transformations
+- Data Apps
 
-### Security Layer
-- Permission model for tags
-- Access control implementation
-- Audit logging 
+### Common Requirements
+- Reuse existing Keboola components
+- Follow platform patterns
+- Maintain consistent UX
+- Performance optimization 

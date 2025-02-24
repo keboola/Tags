@@ -18,16 +18,13 @@ Component for managing tags in object detail views across different Keboola obje
 - [ ] Visual presentation:
   - Color-coded tags with consistent styling
   - Truncation with tooltip for long tag names
-  - Hover states for interactive elements
-  - Smooth animations for add/remove actions
 
 ### Supported Object Types
-- [ ] Storage objects:
-  - Tables (in.c-*/table)
-  - Buckets (in.c-*/out.c-*)
-- [ ] Data Catalog items
+- [ ] Tables
+- [ ] Buckets
+- [ ] Shared Buckets
 - [ ] Flows
-- [ ] Component Configurations
+- [ ] Configurations
 - [ ] Transformations
 - [ ] Data Apps
 
@@ -36,40 +33,10 @@ Component for managing tags in object detail views across different Keboola obje
   - Consistent tag section placement for each object type
   - Respect existing object detail layouts
   - Maintain visual hierarchy
-- [ ] API integration:
-  - Tag CRUD operations
-  - Object-specific endpoints
-  - Proper error handling
-- [ ] State management:
-  - Local tag state
-  - Loading states
-  - Error states
-  - Success feedback
-
-### User Experience
-- [ ] Interactions:
-  - Quick tag addition/removal
-  - Real-time feedback
-  - Clear error messages
-  - Keyboard navigation support
-- [ ] Performance:
-  - Immediate UI updates
-  - Optimistic updates for tag actions
-  - Smooth animations
-  - Proper loading states
 
 ### Technical Requirements
 - [ ] Component reusability:
   - Same tag component across all object types
   - Consistent behavior and styling
   - Shared tag management logic
-- [ ] Error handling:
-  - Network errors
-  - Validation errors
-  - Conflict resolution
-  - User feedback
-- [ ] Testing:
-  - Unit tests for tag operations
-  - Integration tests for each object type
-  - Visual regression tests
-  - Performance testing 
+  - Once tag is created within the management center it should be automatically available in the tag dropdown
