@@ -1,13 +1,13 @@
 # Table - Definition of Done
 
 ## Overview
-Component for displaying and managing Keboola objects (tables, buckets, flows, etc.) with integrated search, filtering, and tag functionality.
+Component for displaying and managing Keboola objects (tables, buckets, flows, etc.) with integrated search, filtering, and tag functionality. It is basically update of the listing component with integrated tag support.
 
 ## Key Implementation Requirements
 
 ### Search & Filter Behavior
 - [ ] Default state:
-  - Show all items in hierarchical view
+  - Show all items in default view
   - Tags hidden by default
   - Maintain parent-child relationships (e.g., buckets and their tables)
 - [ ] Search functionality:
@@ -28,15 +28,11 @@ Component for displaying and managing Keboola objects (tables, buckets, flows, e
   - Left-aligned search icon
   - Right-aligned filter controls
 - [ ] Filter controls:
-  - Show filter (All, Linked, Shared, Tables, Buckets)
-  - Tag filter with searchable dropdown
-  - Visibility toggle for tags/additional info
-- [ ] Table layout:
-  - Checkbox column for selection
-  - Name column with hierarchy indicators
-  - Last change column
-  - Support for system badges (IN/OUT, SHARED, LINKED)
-  - Collapsible parent items
+  - Show filter (objects select)
+  - Tag filter with searchable dropdown (multiselect)
+  - Visibility toggle for tags
+- [ ] Table layout updates:
+  - Support for custom tags - under the name in a new row (system tags remain after the name)
 
 ### States & Interactions
 - [ ] Item states:
