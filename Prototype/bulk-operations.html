@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="table.js"></script>
+    <script src="bulk-operations.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Initial states to prevent flash */
+        .main-content {
+            opacity: 0;
+        }
+
+        .header-content {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        /* Modern approach to handle scrollbar layout shifts */
+        html {
+            scrollbar-gutter: stable;
+        }
+
+        body {
+            border-right: 1px solid #E5E7EB;
+        }
+
+        /* Optional: Style scrollbar for better visual appearance */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #ddd #f1f1f1;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInHeader {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 300ms ease-out forwards;
+        }
+
+        .animate-fade-in-header {
+            animation: fadeInHeader 300ms ease-out forwards;
+        }
+
+        /* Bulk Operations Toolbar */
+        .bulk-toolbar {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            padding: 12px 24px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #E5E7EB;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .bulk-toolbar.active {
+            display: flex !important;
+            animation: slideUp 0.3s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        #infoToaster {
+            transform: translate(-50%, 0);
+            opacity: 0;
+        }
+        
+        #infoToaster.show {
+            transform: translate(-50%, -8px);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body style="background-color: #F2F4F7">
+    <!-- Top Bar -->
+    <div class="bg-white shadow">
+        <div class="max-w-[1280px] mx-auto h-[120px] flex items-center px-4">
+            <div class="header-content animate-fade-in-header">
+                <a href="index.html" class="flex items-center gap-2 text-2xl font-normal text-gray-600 hover:text-gray-800 transition-colors duration-150">
+                    <i class="fa-solid fa-arrow-left text-xl"></i>
+                    <span>Back</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="pt-6 main-content animate-fade-in">
+        <div class="max-w-[1280px] mx-auto pb-[100px]">
+            <!-- Header Section -->
+            <div class="p-4 flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-normal">Storage</h1>
+                </div>
+                <div>
+                    <button class="flex items-center justify-center gap-2 rounded text-xs leading-5 font-medium tracking-[1px] uppercase text-white bg-[#1ec71e] hover:bg-[#1ab01a] active:bg-[#158515] px-4 py-2.5 h-10 cursor-pointer border-none" 
+                        onclick="openCreateBucketModal()">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
+                            <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"></path>
+                        </svg>
+                        CREATE BUCKET
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Filter Section -->
+            <div class="p-4">
+                <div class="flex flex-col gap-4">
+                    <!-- Search Bar with Integrated Filters -->
+                    <div class="relative">
+                        <input type="text" 
+                               id="searchInput"
+                               class="w-full h-14 pl-[48px] pr-[500px] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+                               placeholder="Search all tables (592) and buckets (238)"
+                               oninput="filterTables()">
+                        <div class="absolute left-[20px] top-1/2 -translate-y-1/2">
+                            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                        </div>
+                        <!-- Filter Controls -->
+                        <div class="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                            <!-- Show Dropdown (Disabled) -->
+                            <div class="relative inline-block text-left">
+                                <button type="button" 
+                                        class="inline-flex items-center gap-2 px-2 h-8 bg-white rounded-md text-sm">
+                                    <span class="text-gray-500 font-normal">Show:</span>
+                                    <span class="text-gray-500 font-normal underline">All</span>
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <!-- Divider -->
+                            <div class="h-5 w-px bg-gray-300"></div>
+                            <!-- Tag Filter Dropdown (Disabled) -->
+                            <div class="relative inline-block text-left">
+                                <button type="button" 
+                                        class="inline-flex items-center gap-2 px-2 h-8 bg-white rounded-md text-sm">
+                                    <span class="text-gray-500 font-normal">Filter by tag:</span>
+                                    <span class="text-gray-500 font-normal underline">None</span>
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <!-- Divider -->
+                            <div class="h-5 w-px bg-gray-300"></div>
+                            <!-- Tags Visibility Toggle -->
+                            <div class="relative inline-block text-left">
+                                <button type="button" 
+                                        id="tagsButton"
+                                        onclick="document.getElementById('tagsVisibilityDropdown').classList.toggle('hidden')"
+                                        class="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                                        <path fill-rule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div id="tagsVisibilityDropdown" 
+                                     class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-10">
+                                    <div class="py-1">
+                                        <div class="px-3 py-1.5 text-sm text-gray-700">
+                                            Tags
+                                        </div>
+                                        <div class="h-px bg-gray-100 my-1"></div>
+                                        <a href="#" onclick="updateTagsVisibility('hide-tags', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="radio" name="tagsVisibility" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 border-gray-300 text-blue-500 focus:ring-blue-500" checked>
+                                            Hide tags by default
+                                        </a>
+                                        <a href="#" onclick="updateTagsVisibility('show-tags', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="radio" name="tagsVisibility" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            Show tags by default
+                                        </a>
+                                    </div>
+                                    <div class="py-1">
+                                        <div class="px-3 py-1.5 text-sm text-gray-700">
+                                            Branch
+                                        </div>
+                                        <div class="h-px bg-gray-100 my-1"></div>
+                                        <a href="#" onclick="updateBranchVisibility('hide-branch', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="radio" name="branchVisibility" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 border-gray-300 text-blue-500 focus:ring-blue-500" checked>
+                                            Hide branch folders
+                                        </a>
+                                        <a href="#" onclick="updateBranchVisibility('show-branch', this, event)" class="group flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">
+                                            <input type="radio" name="branchVisibility" onclick="event.stopPropagation()" class="w-3.5 h-3.5 mr-2 border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            Show branch folders
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="px-4">
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="px-6 h-[52px]">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-4">
+                                            <input type="checkbox" id="selectAll" class="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500">
+                                            <span class="font-medium text-black text-[14px]">Name</span>
+                                            <!-- Bulk Actions -->
+                                            <div id="bulkActions" class="flex items-center gap-4 ml-4" style="display: none;">
+                                                <div class="h-5 w-px bg-gray-300"></div>
+                                                <span class="text-sm text-gray-600" id="selectedCount">0 items selected</span>
+                                                <button onclick="openTagSelector()" class="p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100" title="Manage Tags">
+                                                    <i class="fa-solid fa-tags w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <span class="font-medium text-black whitespace-nowrap text-[14px]">Last Change</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Table content will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Management Modal -->
+    <div id="tagManagementModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-[480px] max-h-[90vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-tags text-gray-400"></i>
+                    <h2 class="text-lg font-medium text-gray-900">Manage Tags</h2>
+                </div>
+                <button onclick="closeTagManagementModal()" class="p-1.5 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+                    <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Modal Content -->
+            <div class="px-6 py-4 flex-1 overflow-y-auto">
+                <!-- Search Tags -->
+                <div class="relative mb-4">
+                    <input type="text" 
+                           id="tagSearchInput"
+                           class="w-full h-10 pl-10 pr-4 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Search tags">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2">
+                        <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Available Tags -->
+                <div id="availableTagsContainer" class="space-y-2">
+                    <!-- Available tags will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t border-gray-200">
+                <button onclick="applyTagChanges()" class="w-full flex items-center justify-center rounded text-xs leading-5 font-medium tracking-[1px] uppercase text-white bg-[#1ec71e] hover:bg-[#1ab01a] active:bg-[#158515] px-4 py-2.5 h-10 cursor-pointer border-none opacity-50 cursor-not-allowed" disabled>
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Toaster -->
+    <div id="infoToaster" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 flex items-center gap-2 px-4 py-3 bg-[#0975E0] rounded-lg shadow-lg z-[9999] transition-all duration-300 opacity-0 pointer-events-none translate-y-2">
+        <svg class="w-5 h-5 text-white shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        </svg>
+        <span id="toasterMessage" class="text-sm text-white font-medium"></span>
+    </div>
+</body>
+</html> 
