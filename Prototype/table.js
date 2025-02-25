@@ -324,7 +324,7 @@ function renderTable() {
                                 </div>
                                 <span class="text-sm text-gray-500 whitespace-nowrap">${table.lastChange}</span>
                             </div>
-                            ${table.tags.length > 0 ? `
+                            ${(showTags || isSearching) && table.tags.length > 0 ? `
                                 <div class="ml-[120px] flex flex-wrap gap-[8px]">
                                     ${table.tags.map(tag => {
                                         const colors = tagColors[tag] || { bg: 'bg-gray-100', text: 'text-gray-800' };
@@ -389,50 +389,40 @@ function filterTables() {
     }
 
     data.forEach(bucket => {
-        // Check if bucket has any of the selected tags
-        const bucketHasSelectedTags = bucket.tags && 
-            Array.from(selectedTags).some(tag => bucket.tags.includes(tag));
-        
-        // Check if any search terms match tags
-        const bucketHasMatchingTags = bucket.tags && searchTerms.length > 0 &&
-            searchTerms.some(term => bucket.tags.some(tag => tag.toLowerCase().includes(term)));
-        
-        // Filter tables that have any of the selected tags
+        // Filter tables that match the search criteria
         const filteredTables = bucket.tables.filter(table => {
-            const fullName = `${bucket.name} / ${table.name}`.toLowerCase();
-            const allTags = [...table.tags, ...bucket.tags || []].join(' ').toLowerCase();
+            const tableName = table.name.toLowerCase();
+            const tableFullName = `${bucket.name} / ${table.name}`.toLowerCase();
+            const tableTags = table.tags || [];
             
-            // Match search terms against name and tags
-            const matchesSearch = searchTerms.length === 0 || 
-                                searchTerms.every(term => fullName.includes(term) || allTags.includes(term));
+            // Check if table matches search terms
+            const matchesSearchTerms = searchTerms.length === 0 || 
+                searchTerms.every(term => 
+                    tableName.includes(term) || 
+                    tableFullName.includes(term) || 
+                    tableTags.some(tag => tag.toLowerCase().includes(term))
+                );
             
-            // Match if any selected tag is present in table tags
-            const matchesTags = selectedTags.size === 0 || 
-                              Array.from(selectedTags).some(tag => table.tags.includes(tag));
+            // Check if table has any selected tags
+            const hasSelectedTags = selectedTags.size === 0 || 
+                Array.from(selectedTags).some(tag => tableTags.includes(tag));
             
-            return matchesSearch && matchesTags;
+            return matchesSearchTerms && hasSelectedTags;
         });
 
-        // Check if any tables have matching tags
-        const anyTableHasMatchingTags = filteredTables.some(table => 
-            searchTerms.some(term => table.tags.some(tag => tag.toLowerCase().includes(term)))
-        );
-
-        if (filteredTables.length > 0 || bucketHasSelectedTags) {
+        // Only show bucket if it has matching tables
+        if (filteredTables.length > 0) {
             hasMatches = true;
             
-            // Render bucket row - show tags only if there's a tag match or selected tags
-            renderBucketRow(bucket, tableBody, bucketHasMatchingTags || bucketHasSelectedTags);
+            // Render bucket row
+            renderBucketRow(bucket, tableBody, false);
             
             // Show matching tables if bucket is not collapsed
             if (!collapsedBuckets.has(bucket.name)) {
                 filteredTables.forEach(table => {
-                    // Check if this specific table has matching tags
-                    const tableHasMatchingTags = searchTerms.some(term => 
-                        table.tags.some(tag => tag.toLowerCase().includes(term))
-                    );
-                    // Show tags only if there's a tag match or selected tags
-                    renderTableRow(bucket, table, tableBody, tableHasMatchingTags || selectedTags.size > 0);
+                    // Show tags if we're searching or if tags are enabled
+                    const shouldShowTags = showTags || searchTerms.length > 0;
+                    renderTableRow(bucket, table, tableBody, shouldShowTags);
                 });
             }
         }
@@ -442,7 +432,7 @@ function filterTables() {
         tableBody.innerHTML = `
             <tr>
                 <td class="px-6 py-6">
-                    <div class="text-gray-500 text-sm">No items found with the selected tags</div>
+                    <div class="text-gray-500 text-sm">No items found with the selected criteria</div>
                 </td>
             </tr>
         `;
@@ -556,8 +546,28 @@ function updateDropdownSelection(type, value, element, event) {
     }
 }
 
+// Create a button to open admin panel
+function createAdminButton() {
+    // Don't create admin button on bulk-operations page
+    if (window.location.pathname.includes('bulk-operations')) {
+        return;
+    }
+    
+    const adminButton = document.createElement('button');
+    adminButton.id = 'openAdminPanel';
+    adminButton.className = 'fixed bottom-4 right-4 bg-white w-10 h-10 flex items-center justify-center rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50';
+    adminButton.innerHTML = '<i class="fas fa-cog text-gray-600"></i>';
+    adminButton.onclick = createAdminPanel;
+    document.body.appendChild(adminButton);
+}
+
 // Add admin settings panel to the page
 function createAdminPanel() {
+    // Don't create admin panel on bulk-operations page
+    if (window.location.pathname.includes('bulk-operations')) {
+        return;
+    }
+    
     // Remove existing admin panel if it exists
     const existingPanel = document.getElementById('adminPanel');
     if (existingPanel) existingPanel.remove();
@@ -689,16 +699,6 @@ function getSystemBadgeClasses(color) {
     } else { // subtle style
         return `bg-${color}-100 text-${color}-800 ${baseClasses} ${radius}`;
     }
-}
-
-// Create a button to open admin panel
-function createAdminButton() {
-    const adminButton = document.createElement('button');
-    adminButton.id = 'openAdminPanel';
-    adminButton.className = 'fixed bottom-4 right-4 bg-white w-10 h-10 flex items-center justify-center rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50';
-    adminButton.innerHTML = '<i class="fas fa-cog text-gray-600"></i>';
-    adminButton.onclick = createAdminPanel;
-    document.body.appendChild(adminButton);
 }
 
 // Function to get all unique tags from the data
