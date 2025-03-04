@@ -415,13 +415,13 @@ function filterTables() {
             hasMatches = true;
             
             // Render bucket row
-            renderBucketRow(bucket, tableBody, false);
+            renderBucketRow(bucket, tableBody, selectedTags.size > 0);
             
             // Show matching tables if bucket is not collapsed
             if (!collapsedBuckets.has(bucket.name)) {
                 filteredTables.forEach(table => {
-                    // Show tags if we're searching or if tags are enabled
-                    const shouldShowTags = showTags || searchTerms.length > 0;
+                    // Show tags if we're searching, if tags are enabled, or if we're filtering by tags
+                    const shouldShowTags = showTags || searchTerms.length > 0 || selectedTags.size > 0;
                     renderTableRow(bucket, table, tableBody, shouldShowTags);
                 });
             }
@@ -748,7 +748,17 @@ function populateTagsList(searchTerm = '') {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.className = 'w-4 h-4 mr-2 rounded border-gray-300 text-blue-500 focus:ring-blue-500';
-        checkbox.checked = selectedTags.size === 0;
+        
+        // Set checkbox state based on selected tags
+        if (selectedTags.size === 0) {
+            checkbox.checked = true;
+        } else if (selectedTags.size === allTags.length) {
+            checkbox.checked = true;
+        } else {
+            checkbox.checked = false;
+            // Set indeterminate state if some tags are selected
+            checkbox.indeterminate = selectedTags.size > 0;
+        }
         
         const label = document.createElement('span');
         label.textContent = 'All Tags';
@@ -856,10 +866,26 @@ function toggleTagSelection(tag, checkbox) {
         checkbox.checked = selectedTags.has(tag);
     }
     
+    // Update the "All Tags" checkbox state
+    const allTagsCheckbox = document.querySelector('#tagsList input[type="checkbox"]:first-of-type');
+    if (allTagsCheckbox) {
+        const allTags = getAllUniqueTags();
+        if (selectedTags.size === 0) {
+            allTagsCheckbox.checked = true;
+            allTagsCheckbox.indeterminate = false;
+        } else if (selectedTags.size === allTags.length) {
+            allTagsCheckbox.checked = true;
+            allTagsCheckbox.indeterminate = false;
+        } else {
+            allTagsCheckbox.checked = false;
+            allTagsCheckbox.indeterminate = true;
+        }
+    }
+    
     // Update the filter button text
     updateTagFilterButtonText();
     
-    // Apply filters
+    // Apply filters - use filterTables to ensure consistent behavior
     filterTables();
 }
 
@@ -871,7 +897,12 @@ function clearTagSelection() {
     const checkboxes = document.querySelectorAll('#tagsList input[type="checkbox"]');
     checkboxes.forEach((checkbox, index) => {
         // First checkbox is the "All" option
-        checkbox.checked = index === 0;
+        if (index === 0) {
+            checkbox.checked = true;
+            checkbox.indeterminate = false;
+        } else {
+            checkbox.checked = false;
+        }
     });
     
     // Update the filter button text
@@ -933,13 +964,14 @@ function applyTagFilters() {
         if (filteredTables.length > 0 || bucketHasSelectedTags) {
             hasMatches = true;
             
-            // Render bucket row
-            renderBucketRow(bucket, tableBody);
+            // Render bucket row - always show tags when filtering by tags
+            renderBucketRow(bucket, tableBody, true);
             
             // Show matching tables if bucket is not collapsed
             if (!collapsedBuckets.has(bucket.name)) {
                 filteredTables.forEach(table => {
-                    renderTableRow(bucket, table, tableBody);
+                    // Always show tags when filtering by tags
+                    renderTableRow(bucket, table, tableBody, true);
                 });
             }
         }
@@ -999,8 +1031,12 @@ function renderBucketRow(bucket, tableBody, shouldShowTags = false) {
                 ${(shouldShowTags || showTags) && bucket.tags && bucket.tags.length > 0 ? `
                     <div class="flex flex-wrap gap-[8px] ml-[88px]">
                         ${bucket.tags.map(tag => {
-                            const colors = tagColors[tag] || { bg: 'bg-gray-100', text: 'text-gray-800' };
-                            return `<span class="${colors.bg} ${colors.text} px-[8px] py-[2px] rounded text-[12px]">#${searchTerms.length > 0 ? highlightMatches(tag, searchTerms) : tag}</span>`;
+                            // Only show tags that match the filter criteria or all tags if no filter is applied
+                            if (selectedTags.size === 0 || selectedTags.has(tag)) {
+                                const colors = tagColors[tag] || { bg: 'bg-gray-100', text: 'text-gray-800' };
+                                return `<span class="${colors.bg} ${colors.text} px-[8px] py-[2px] rounded text-[12px]">#${searchTerms.length > 0 ? highlightMatches(tag, searchTerms) : tag}</span>`;
+                            }
+                            return '';
                         }).join('')}
                     </div>
                 ` : ''}
@@ -1049,8 +1085,12 @@ function renderTableRow(bucket, table, tableBody, shouldShowTags = false) {
                 ${(shouldShowTags || showTags) && table.tags.length > 0 ? `
                     <div class="ml-[120px] flex flex-wrap gap-[8px]">
                         ${table.tags.map(tag => {
-                            const colors = tagColors[tag] || { bg: 'bg-gray-100', text: 'text-gray-800' };
-                            return `<span class="${colors.bg} ${colors.text} px-[8px] py-[2px] rounded text-[12px]">#${searchTerms.length > 0 ? highlightMatches(tag, searchTerms) : tag}</span>`;
+                            // Only show tags that match the filter criteria or all tags if no filter is applied
+                            if (selectedTags.size === 0 || selectedTags.has(tag)) {
+                                const colors = tagColors[tag] || { bg: 'bg-gray-100', text: 'text-gray-800' };
+                                return `<span class="${colors.bg} ${colors.text} px-[8px] py-[2px] rounded text-[12px]">#${searchTerms.length > 0 ? highlightMatches(tag, searchTerms) : tag}</span>`;
+                            }
+                            return '';
                         }).join('')}
                     </div>
                 ` : ''}
